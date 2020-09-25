@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -33,6 +34,7 @@ func Do() {
 	fmt.Printf("Initialized action.\n")
 
 	act := action.NewInstall(a)
+	act.PostRenderer = &postrenderer{}
 	act.Atomic = true
 	act.Namespace = "default"
 	act.ReleaseName = "foo"
@@ -50,4 +52,14 @@ func Do() {
 		return
 	}
 	fmt.Printf("Installed chart\n")
+}
+
+type postrenderer struct{}
+
+func (pr *postrenderer) Run(renderedManifests *bytes.Buffer) (modifiedManifests *bytes.Buffer, err error) {
+	buf := renderedManifests.Bytes()
+	fmt.Printf("Post renderer:\n")
+	fmt.Printf(string(buf))
+	modifiedManifests = bytes.NewBuffer(buf)
+	return modifiedManifests, nil
 }
